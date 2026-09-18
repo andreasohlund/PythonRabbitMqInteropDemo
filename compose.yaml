@@ -1,0 +1,54 @@
+services:
+  rabbitmq:
+    image: rabbitmq:4-management
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-demo}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-demo}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-/}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+
+  receiver:
+    build:
+      context: .
+      dockerfile: receiver/Dockerfile
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      LICENSE_FILE_PATH: ${LICENSE_FILE_PATH:-/license.xml}
+      RABBITMQ_CONNECTION_STRING: Host=${RABBITMQ_HOST:-rabbitmq};Port=${RABBITMQ_PORT:-5672};VirtualHost=${RABBITMQ_VHOST:-/};UserName=${RABBITMQ_USERNAME:-demo};Password=${RABBITMQ_PASSWORD:-demo}
+    volumes:
+      - ./license.xml:/license.xml:ro
+
+  python-sender:
+    build:
+      context: python-sender
+      dockerfile: Dockerfile
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      receiver:
+        condition: service_started
+    environment:
+      RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
+      RABBITMQ_PORT: ${RABBITMQ_PORT:-5672}
+      RABBITMQ_VHOST: ${RABBITMQ_VHOST:-/}
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-demo}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-demo}
+      QUEUE_NAME: ${QUEUE_NAME:-PythonRabbitMqInterop.Receiver}
+      MESSAGE_TYPE: ${MESSAGE_TYPE:-PythonRabbitMqInterop.Messages.SubmitOrder}
+      QUEUE_WAIT_TIMEOUT_SECONDS: ${QUEUE_WAIT_TIMEOUT_SECONDS:-90}
+    restart: "no"
+
+volumes:
+  rabbitmq-data:

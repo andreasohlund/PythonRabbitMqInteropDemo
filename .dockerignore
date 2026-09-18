@@ -1,0 +1,14 @@
+.git
+.gitignore
+.github
+**/bin
+**/obj
+**/__pycache__
+**/*.pyc
+.venv
+.env
+README.md
+python-sender/
+compose.yaml
+global.json
+PythonRabbitMqInteropDemo.slnx

@@ -1,0 +1,33 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Restore and build receiver
+        run: dotnet build receiver/receiver.csproj -c Release
+
+      - name: Byte-compile Python sender
+        run: python -m py_compile python-sender/send.py
+
+      - name: Validate compose
+        run: docker compose config
+
+      - name: Build demo images
+        run: docker compose build receiver python-sender
