@@ -1,3 +1,4 @@
 <Solution>
-  <Project Path="receiver/receiver.csproj" />
+  <Project Path="AppHost/AppHost.csproj" />
+  <Project Path="Backend/Backend.csproj" />
 </Solution>

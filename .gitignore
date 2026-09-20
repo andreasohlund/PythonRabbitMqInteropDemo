@@ -8,3 +8,4 @@ obj/
 .env
 license.xml
 .DS_Store
+.idea/

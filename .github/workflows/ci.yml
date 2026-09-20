@@ -20,14 +20,9 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Restore and build receiver
-        run: dotnet build receiver/receiver.csproj -c Release
+      - name: Restore and build app host
+        run: dotnet build AppHost/AppHost.csproj -c Release
 
-      - name: Byte-compile Python sender
-        run: python -m py_compile python-sender/send.py
+      - name: Byte-compile Python frontend
+        run: python3 -m py_compile Frontend/send.py Frontend/receive.py
 
-      - name: Validate compose
-        run: docker compose config
-
-      - name: Build demo images
-        run: docker compose build receiver python-sender
