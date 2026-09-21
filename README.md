@@ -86,8 +86,7 @@ The Aspire app host starts:
 
 - `rabbitmq` on ports `5672` and `15672`
 - `Backend` as the NServiceBus endpoint
-- `frontend-reply-receiver` as a long-running Python resource that consumes `OrderConfirmed` replies
-- `frontend-sender` as a long-running Python resource that sends one message every 5 seconds
+- `Frontend` as a long-running Python resource that sends orders and consumes `OrderConfirmed` replies
 - `particular` as the Aspire resource that owns the platform topology
 - `particular-persistence` as the managed RavenDB instance
 - `particular-error`, `particular-audit`, `particular-monitoring`, and `particular-servicepulse`
@@ -120,5 +119,5 @@ The frontend reply receiver continuously listens on the `Frontend` queue. The fr
 - `AppHost/` - Aspire app host
 - `Messages/` - shared message contracts
 - `Backend/` - NServiceBus endpoint
-- `Frontend/` - native Python sender and reply receiver
+- `Frontend/` - native Python sender, reply receiver, and combined `Frontend` process
 - `rabbitmq-definitions.json` - global RabbitMQ topology definition
