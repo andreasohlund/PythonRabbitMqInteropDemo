@@ -101,16 +101,16 @@ ServiceControl, Monitoring, ServicePulse, and RavenDB use Aspire-managed host po
 
 ## Backend queue
 
-The backend endpoint is named `Backend`. NServiceBus creates a quorum queue with that name.
+RabbitMQ loads `rabbitmq-definitions.json` during startup, creating the durable quorum queues used by the backend, frontend, and service platform. The backend endpoint does not install queues at startup.
 
 The frontend reply receiver continuously listens on the `Frontend` queue. The frontend sender sets `NServiceBus.ReplyToAddress` and `reply_to` so `context.Reply(...)` routes each `OrderConfirmed` back to that queue.
 
 ## Troubleshooting
 
 - **Missing license**: ensure a valid Particular license is installed in a standard location or set `PARTICULARSOFTWARE_LICENSE` before running the app host.
-- **Sender times out**: verify `Backend` reached the running state and created its queue.
+- **Sender times out**: verify RabbitMQ loaded `rabbitmq-definitions.json` and `Backend` reached the running state.
 - **Unroutable message**: verify `QUEUE_NAME` matches the backend endpoint name exactly.
-- **Missing reply**: ensure `REPLY_QUEUE_NAME` is declared and `NServiceBus.ReplyToAddress` is set by the frontend sender.
+- **Missing reply**: verify RabbitMQ loaded `rabbitmq-definitions.json` and `NServiceBus.ReplyToAddress` is set by the frontend sender.
 - **Deserialization failure**: ensure the Python JSON body uses `orderId`, `customerId`, and `amount`.
 - **Handler not invoked**: ensure `type` is `PythonRabbitMqInterop.Messages.SubmitOrder` and `content_type` is `application/json`.
 - **ServicePulse is empty**: make sure the license is valid and the backend is running with auditing enabled.
@@ -121,3 +121,4 @@ The frontend reply receiver continuously listens on the `Frontend` queue. The fr
 - `Messages/` - shared message contracts
 - `Backend/` - NServiceBus endpoint
 - `Frontend/` - native Python sender and reply receiver
+- `rabbitmq-definitions.json` - global RabbitMQ topology definition

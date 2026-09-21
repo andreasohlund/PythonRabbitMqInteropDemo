@@ -7,6 +7,8 @@ var rabbitMqPassword = builder.AddParameter("rabbitmq-password", "demo", secret:
 
 var rabbitmq = builder.AddRabbitMQ("rabbitmq", rabbitMqUserName, rabbitMqPassword, port: 5672)
     .WithDataVolume()
+    .WithBindMount(Path.Combine("..", "rabbitmq-definitions.json"), "/etc/rabbitmq/definitions.json", isReadOnly: true)
+    .WithEnvironment("RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS", "-rabbitmq_management load_definitions \"/etc/rabbitmq/definitions.json\"")
     .WithManagementPlugin(port: 15672);
 
 var platform = builder

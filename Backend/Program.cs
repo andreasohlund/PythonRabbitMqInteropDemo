@@ -16,7 +16,6 @@ await host.RunAsync();
 static EndpointConfiguration CreateEndpointConfiguration(string rabbitConnectionString)
 {
     var configuration = new EndpointConfiguration("Backend");
-    configuration.EnableInstallers();
 
     var serialization = configuration.UseSerialization<SystemJsonSerializer>();
     serialization.ContentType("application/json");

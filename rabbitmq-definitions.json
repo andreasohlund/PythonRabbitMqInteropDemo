@@ -1,0 +1,26 @@
+{
+  "exchanges": [
+    { "name": "Backend", "vhost": "/", "type": "direct", "durable": true, "auto_delete": false },
+    { "name": "Frontend", "vhost": "/", "type": "fanout", "durable": true, "auto_delete": false },
+    { "name": "error", "vhost": "/", "type": "direct", "durable": true, "auto_delete": false },
+    { "name": "audit", "vhost": "/", "type": "direct", "durable": true, "auto_delete": false },
+    { "name": "Particular.Monitoring", "vhost": "/", "type": "direct", "durable": true, "auto_delete": false },
+    { "name": "Particular.ServiceControl", "vhost": "/", "type": "direct", "durable": true, "auto_delete": false }
+  ],
+  "queues": [
+    { "name": "Backend", "vhost": "/", "durable": true, "auto_delete": false, "arguments": { "x-queue-type": "quorum" } },
+    { "name": "Frontend", "vhost": "/", "durable": true, "auto_delete": false, "arguments": { "x-queue-type": "quorum" } },
+    { "name": "error", "vhost": "/", "durable": true, "auto_delete": false, "arguments": { "x-queue-type": "quorum" } },
+    { "name": "audit", "vhost": "/", "durable": true, "auto_delete": false, "arguments": { "x-queue-type": "quorum" } },
+    { "name": "Particular.Monitoring", "vhost": "/", "durable": true, "auto_delete": false, "arguments": { "x-queue-type": "quorum" } },
+    { "name": "Particular.ServiceControl", "vhost": "/", "durable": true, "auto_delete": false, "arguments": { "x-queue-type": "quorum" } }
+  ],
+  "bindings": [
+    { "source": "Backend", "vhost": "/", "destination": "Backend", "destination_type": "queue", "routing_key": "Backend" },
+    { "source": "Frontend", "vhost": "/", "destination": "Frontend", "destination_type": "queue", "routing_key": "" },
+    { "source": "error", "vhost": "/", "destination": "error", "destination_type": "queue", "routing_key": "error" },
+    { "source": "audit", "vhost": "/", "destination": "audit", "destination_type": "queue", "routing_key": "audit" },
+    { "source": "Particular.Monitoring", "vhost": "/", "destination": "Particular.Monitoring", "destination_type": "queue", "routing_key": "Particular.Monitoring" },
+    { "source": "Particular.ServiceControl", "vhost": "/", "destination": "Particular.ServiceControl", "destination_type": "queue", "routing_key": "Particular.ServiceControl" }
+  ]
+}

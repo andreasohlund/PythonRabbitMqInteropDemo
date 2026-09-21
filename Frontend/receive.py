@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import pika
-from pika.adapters.blocking_connection import BlockingChannel, BlockingConnection
+from pika.adapters.blocking_connection import BlockingConnection
 
 
 @dataclass(frozen=True)
@@ -39,23 +39,6 @@ def build_connection_parameters(settings: Settings) -> pika.ConnectionParameters
     )
 
 
-def declare_reply_queue(channel: BlockingChannel, settings: Settings) -> None:
-    channel.exchange_declare(
-        exchange=settings.reply_queue_name,
-        exchange_type="fanout",
-        durable=True,
-    )
-    channel.queue_declare(
-        queue=settings.reply_queue_name,
-        durable=True,
-        arguments={"x-queue-type": "quorum"},
-    )
-    channel.queue_bind(
-        exchange=settings.reply_queue_name,
-        queue=settings.reply_queue_name,
-    )
-
-
 def decode_body(body: bytes) -> dict[str, Any]:
     return json.loads(body.decode("utf-8"))
 
@@ -64,8 +47,6 @@ def receive_order_confirmed(settings: Settings) -> None:
     connection = BlockingConnection(build_connection_parameters(settings))
     try:
         channel = connection.channel()
-        declare_reply_queue(channel, settings)
-
         for method, properties, body in channel.consume(
             queue=settings.reply_queue_name
         ):

@@ -10,7 +10,7 @@ from typing import Any
 
 import pika
 from pika.adapters.blocking_connection import BlockingChannel, BlockingConnection
-from pika.exceptions import AMQPConnectionError, ChannelClosedByBroker, UnroutableError
+from pika.exceptions import UnroutableError
 
 
 @dataclass(frozen=True)
@@ -27,8 +27,6 @@ class Settings:
         "MESSAGE_TYPE", "PythonRabbitMqInterop.Messages.SubmitOrder"
     )
     app_id: str = os.getenv("APP_ID", "Frontend")
-    timeout_seconds: int = int(os.getenv("QUEUE_WAIT_TIMEOUT_SECONDS", "60"))
-    poll_interval_seconds: float = float(os.getenv("QUEUE_WAIT_POLL_INTERVAL_SECONDS", "1"))
     send_interval_seconds: float = float(os.getenv("SEND_INTERVAL_SECONDS", "5"))
 
 
@@ -48,54 +46,6 @@ def build_connection_parameters(settings: Settings) -> pika.ConnectionParameters
         heartbeat=30,
         blocked_connection_timeout=30,
     )
-
-
-def wait_for_queue(settings: Settings, queue_name: str) -> None:
-    deadline = time.monotonic() + settings.timeout_seconds
-
-    while True:
-        try:
-            connection = BlockingConnection(build_connection_parameters(settings))
-            try:
-                channel = connection.channel()
-                try:
-                    channel.queue_declare(queue=queue_name, passive=True)
-                    return
-                finally:
-                    if channel.is_open:
-                        channel.close()
-            finally:
-                if connection.is_open:
-                    connection.close()
-        except (AMQPConnectionError, ChannelClosedByBroker, OSError) as ex:
-            if time.monotonic() >= deadline:
-                raise TimeoutError(
-                    f"Timed out waiting for RabbitMQ queue '{queue_name}' to exist"
-                ) from ex
-            time.sleep(settings.poll_interval_seconds)
-
-
-def ensure_reply_queue(settings: Settings) -> None:
-    connection = BlockingConnection(build_connection_parameters(settings))
-    try:
-        channel = connection.channel()
-        channel.exchange_declare(
-            exchange=settings.reply_queue_name,
-            exchange_type="fanout",
-            durable=True,
-        )
-        channel.queue_declare(
-            queue=settings.reply_queue_name,
-            durable=True,
-            arguments={"x-queue-type": "quorum"},
-        )
-        channel.queue_bind(
-            exchange=settings.reply_queue_name,
-            queue=settings.reply_queue_name,
-        )
-    finally:
-        if connection.is_open:
-            connection.close()
 
 
 def build_message(sequence_number: int) -> dict[str, Any]:
@@ -156,9 +106,6 @@ def publish_submit_order(
 
 
 def run_sender(settings: Settings) -> None:
-    wait_for_queue(settings, settings.queue_name)
-    ensure_reply_queue(settings)
-
     connection = BlockingConnection(build_connection_parameters(settings))
     try:
         channel = connection.channel()
